@@ -100,6 +100,7 @@ func init() {
 	findCmd.PersistentFlags().StringVarP(&bifClient.Token, "insights-oss-token", "t", "", "Your Fairwinds OSS Token")
 	findCmd.PersistentFlags().StringVar(&bifClient.APIURL, "bif-url", "https://bif-server-6biex2p5nq-uc.a.run.app", "The URL of the BIF server.")
 	findCmd.PersistentFlags().StringVarP(&bifClient.OutputFormat, "output", "o", "json", fmt.Sprintf("The output format to use. Must be one of %v", bif.OutputFormats))
+	findCmd.PersistentFlags().BoolVar(&bifClient.ColorizeOutput, "color", true, "If true, table output will be colorized")
 
 	requestTokenCmd.PersistentFlags().StringVar(&insightsURL, "insights-url", "https://insights.fairwinds.com", "The Insights API URL")
 

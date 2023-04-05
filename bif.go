@@ -26,9 +26,10 @@ import (
 )
 
 type Client struct {
-	APIURL       string `json:"apiURL"`
-	Token        string `json:"token"`
-	OutputFormat string `json:"outputFormat"`
+	APIURL         string `json:"apiURL"`
+	Token          string `json:"token"`
+	OutputFormat   string `json:"outputFormat"`
+	ColorizeOutput bool   `json:"colorizeOutput"`
 }
 
 var OutputFormats []string = []string{
@@ -59,7 +60,7 @@ func (c *Client) GetBaseImageOutput(image string) (string, error) {
 		output, err := yaml.Marshal(report)
 		return string(output), err
 	case "table":
-		output, err := report.TableOutput()
+		output, err := report.TableOutput(c.ColorizeOutput)
 		return string(output), err
 
 	default:

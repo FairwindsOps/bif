@@ -53,24 +53,21 @@ type ImageUpgrade struct {
 	FixedVulnerabilities []*ReportVulnerability `json:"fixed_vulnerabilities"`
 }
 
-func (report *BaseImageVulnerabilityReport) TableOutput() ([]byte, error) {
+func (report *BaseImageVulnerabilityReport) TableOutput(colorize bool) ([]byte, error) {
 	table := tw.NewWriter(os.Stdout)
 	table.SetHeader([]string{"Base Image", "Last Scan", "CVE", "Severity", "CVSS", "Fixed In"})
 	table.SetBorder(false)
 
-	table.SetHeaderColor(
-		tw.Colors{tw.Bold, tw.FgCyanColor},
-		tw.Colors{tw.FgCyanColor},
-		tw.Colors{tw.FgWhiteColor, tw.Bold},
-		tw.Colors{tw.FgWhiteColor},
-		tw.Colors{tw.FgWhiteColor},
-		tw.Colors{tw.FgCyanColor},
-	)
-
-	// table.SetColumnColor(tw.Colors{tw.Bold, tw.FgHiBlackColor},
-	// 	tw.Colors{tw.Bold, tw.FgHiRedColor},
-	// 	tw.Colors{tw.Bold, tw.FgHiBlackColor},
-	// 	tw.Colors{tw.Bold, tw.FgBlackColor})
+	if colorize {
+		table.SetHeaderColor(
+			tw.Colors{tw.Bold, tw.FgCyanColor},
+			tw.Colors{tw.FgCyanColor},
+			tw.Colors{tw.FgWhiteColor, tw.Bold},
+			tw.Colors{tw.FgWhiteColor},
+			tw.Colors{tw.FgWhiteColor},
+			tw.Colors{tw.FgCyanColor},
+		)
+	}
 
 	for _, baseImage := range report.BaseImages {
 		for _, vuln := range baseImage.Vulnerabilities {
@@ -110,17 +107,29 @@ func (report *BaseImageVulnerabilityReport) TableOutput() ([]byte, error) {
 				fixedString,
 			}
 
+			criticalHighColor := []tw.Colors{{tw.FgCyanColor}, {tw.FgCyanColor}, {tw.FgHiRedColor}, {tw.Bold, tw.FgHiRedColor}, {tw.FgHiRedColor}, {tw.FgCyanColor}}
+			mediumColor := []tw.Colors{{tw.FgCyanColor}, {tw.FgCyanColor}, {tw.FgHiGreenColor}, {tw.Bold, tw.FgHiGreenColor}, {tw.Bold, tw.FgHiGreenColor}, {tw.FgCyanColor}}
+			lowColor := []tw.Colors{{tw.FgCyanColor}, {tw.FgCyanColor}, {tw.FgHiCyanColor}, {tw.Bold, tw.FgHiCyanColor}, {tw.Bold, tw.FgHiCyanColor}, {tw.FgCyanColor}}
+			defaultColor := []tw.Colors{{tw.FgCyanColor}, {tw.FgCyanColor}}
+
+			if !colorize {
+				criticalHighColor = []tw.Colors{}
+				mediumColor = []tw.Colors{}
+				lowColor = []tw.Colors{}
+				defaultColor = []tw.Colors{}
+			}
+
 			switch vuln.Severity {
 			case "CRITICAL":
-				table.Rich(row, []tw.Colors{{tw.FgCyanColor}, {tw.FgCyanColor}, {tw.FgHiRedColor}, {tw.Bold, tw.FgHiRedColor}, {tw.FgHiRedColor}, {tw.FgCyanColor}})
+				table.Rich(row, criticalHighColor)
 			case "HIGH":
-				table.Rich(row, []tw.Colors{{tw.FgCyanColor}, {tw.FgCyanColor}, {tw.FgHiRedColor}, {tw.Bold, tw.FgHiRedColor}, {tw.Bold, tw.FgHiRedColor}, {tw.FgCyanColor}})
+				table.Rich(row, criticalHighColor)
 			case "MEDIUM":
-				table.Rich(row, []tw.Colors{{tw.FgCyanColor}, {tw.FgCyanColor}, {tw.FgHiGreenColor}, {tw.Bold, tw.FgHiGreenColor}, {tw.Bold, tw.FgHiGreenColor}, {tw.FgCyanColor}})
+				table.Rich(row, mediumColor)
 			case "LOW":
-				table.Rich(row, []tw.Colors{{tw.FgCyanColor}, {tw.FgCyanColor}, {tw.FgHiCyanColor}, {tw.Bold, tw.FgHiCyanColor}, {tw.Bold, tw.FgHiCyanColor}, {tw.FgCyanColor}})
+				table.Rich(row, lowColor)
 			default:
-				table.Rich(row, []tw.Colors{{tw.FgCyanColor}, {tw.FgCyanColor}})
+				table.Rich(row, defaultColor)
 			}
 		}
 	}
