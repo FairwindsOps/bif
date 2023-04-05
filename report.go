@@ -55,11 +55,12 @@ type ImageUpgrade struct {
 
 func (report *BaseImageVulnerabilityReport) TableOutput() ([]byte, error) {
 	table := tw.NewWriter(os.Stdout)
-	table.SetHeader([]string{"Base Image", "CVE", "Severity", "CVSS", "Fixed In"})
+	table.SetHeader([]string{"Base Image", "Last Scan", "CVE", "Severity", "CVSS", "Fixed In"})
 	table.SetBorder(false)
 
 	table.SetHeaderColor(
 		tw.Colors{tw.Bold, tw.FgCyanColor},
+		tw.Colors{tw.FgCyanColor},
 		tw.Colors{tw.FgWhiteColor, tw.Bold},
 		tw.Colors{tw.FgWhiteColor},
 		tw.Colors{tw.FgWhiteColor},
@@ -94,25 +95,38 @@ func (report *BaseImageVulnerabilityReport) TableOutput() ([]byte, error) {
 				}
 			}
 
-			row := []string{baseImage.ImageRepository + ":" + baseImage.ImageTag, vuln.ID, vuln.Severity, strconv.FormatFloat(vuln.CVSS, 'f', 2, 64), fixedString}
+			var lastScan string
+			if baseImage.LastScan == nil {
+				lastScan = "unknown"
+			} else {
+				lastScan = baseImage.LastScan.Format("2006-01-02")
+			}
+			row := []string{
+				baseImage.ImageRepository + ":" + baseImage.ImageTag,
+				lastScan,
+				vuln.ID,
+				vuln.Severity,
+				strconv.FormatFloat(vuln.CVSS, 'f', 2, 64),
+				fixedString,
+			}
 
 			switch vuln.Severity {
 			case "CRITICAL":
-				table.Rich(row, []tw.Colors{{tw.Normal, tw.FgCyanColor}, {tw.Normal, tw.FgHiRedColor}, {tw.Bold, tw.FgHiRedColor}, {tw.Normal, tw.FgHiRedColor}, {tw.FgCyanColor}})
+				table.Rich(row, []tw.Colors{{tw.FgCyanColor}, {tw.FgCyanColor}, {tw.FgHiRedColor}, {tw.Bold, tw.FgHiRedColor}, {tw.FgHiRedColor}, {tw.FgCyanColor}})
 			case "HIGH":
-				table.Rich(row, []tw.Colors{{tw.Normal, tw.FgCyanColor}, {tw.Normal, tw.FgHiRedColor}, {tw.Bold, tw.FgHiRedColor}, {tw.Bold, tw.FgHiRedColor}, {tw.FgCyanColor}})
+				table.Rich(row, []tw.Colors{{tw.FgCyanColor}, {tw.FgCyanColor}, {tw.FgHiRedColor}, {tw.Bold, tw.FgHiRedColor}, {tw.Bold, tw.FgHiRedColor}, {tw.FgCyanColor}})
 			case "MEDIUM":
-				table.Rich(row, []tw.Colors{{tw.Normal, tw.FgCyanColor}, {tw.Normal, tw.FgHiGreenColor}, {tw.Bold, tw.FgHiGreenColor}, {tw.Bold, tw.FgHiGreenColor}, {tw.FgCyanColor}})
+				table.Rich(row, []tw.Colors{{tw.FgCyanColor}, {tw.FgCyanColor}, {tw.FgHiGreenColor}, {tw.Bold, tw.FgHiGreenColor}, {tw.Bold, tw.FgHiGreenColor}, {tw.FgCyanColor}})
 			case "LOW":
-				table.Rich(row, []tw.Colors{{tw.Normal, tw.FgCyanColor}, {tw.Normal, tw.FgHiCyanColor}, {tw.Bold, tw.FgHiCyanColor}, {tw.Bold, tw.FgHiCyanColor}, {tw.FgCyanColor}})
+				table.Rich(row, []tw.Colors{{tw.FgCyanColor}, {tw.FgCyanColor}, {tw.FgHiCyanColor}, {tw.Bold, tw.FgHiCyanColor}, {tw.Bold, tw.FgHiCyanColor}, {tw.FgCyanColor}})
 			default:
-				table.Rich(row, []tw.Colors{{tw.Normal, tw.FgCyanColor}})
+				table.Rich(row, []tw.Colors{{tw.FgCyanColor}, {tw.FgCyanColor}})
 			}
 		}
 	}
 
 	table.SetAutoMergeCells(false)
-	table.SetAutoMergeCellsByColumnIndex([]int{0})
+	table.SetAutoMergeCellsByColumnIndex([]int{0, 1})
 	table.Render()
 	return []byte{}, nil
 }
