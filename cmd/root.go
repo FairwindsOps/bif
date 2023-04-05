@@ -16,10 +16,16 @@ limitations under the License.
 package cmd
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
+	"io"
+	"net/http"
+	"net/mail"
 	"os"
 	"strings"
 
+	"github.com/manifoldco/promptui"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
@@ -31,6 +37,7 @@ var (
 	cfgFile       string
 	token         string
 	bifURL        string
+	insightsURL   string
 )
 
 // rootCmd represents the base command when called without any subcommands
@@ -53,6 +60,17 @@ var findCmd = &cobra.Command{
 			os.Exit(1)
 		}
 		if err := getBaseImage(args[0]); err != nil {
+			fmt.Println(err.Error())
+			os.Exit(1)
+		}
+	},
+}
+
+var requestTokenCmd = &cobra.Command{
+	Use:   "request-token",
+	Short: "Requests an API token for BIF",
+	Run: func(cmd *cobra.Command, args []string) {
+		if err := requestInsightsOSSToken(); err != nil {
 			fmt.Println(err.Error())
 			os.Exit(1)
 		}
@@ -86,8 +104,11 @@ func init() {
 	findCmd.PersistentFlags().StringVarP(&token, "insights-oss-token", "t", "", "Your Fairwinds OSS Token")
 	findCmd.PersistentFlags().StringVar(&bifURL, "bif-url", "https://bif-server-6biex2p5nq-uc.a.run.app", "The URL of the BIF server.")
 
+	requestTokenCmd.PersistentFlags().StringVar(&insightsURL, "insights-url", "https://insights.fairwinds.com", "The Insights API URL")
+
 	rootCmd.AddCommand(findCmd)
 	rootCmd.AddCommand(versionCmd)
+	rootCmd.AddCommand(requestTokenCmd)
 }
 
 // initConfig reads in config file and ENV variables if set.
@@ -115,6 +136,7 @@ func initConfig() {
 
 	bindFlags(rootCmd, viper.GetViper())
 	bindFlags(findCmd, viper.GetViper())
+	bindFlags(requestTokenCmd, viper.GetViper())
 }
 
 // bindFlags binds the flags to the viper config, as well as to environment variables
@@ -138,4 +160,60 @@ func bindFlags(cmd *cobra.Command, v *viper.Viper) {
 			}
 		}
 	})
+}
+
+func requestInsightsOSSToken() error {
+
+	validateEmail := func(input string) error {
+		_, err := mail.ParseAddress(input)
+		if err != nil {
+			return fmt.Errorf("invalid email: %s", err.Error())
+		}
+		return nil
+	}
+
+	prompt := promptui.Prompt{
+		Label:    "Please enter your email address in order to receive a token",
+		Validate: validateEmail,
+	}
+
+	result, err := prompt.Run()
+	if err != nil {
+		return err
+	}
+
+	body := struct {
+		Email   string `json:"email"`
+		Project string `json:"project"`
+	}{
+		Email:   result,
+		Project: "saffire", // TODO: Update this once BIF is available as an option in the backend
+	}
+
+	out, err := json.Marshal(body)
+	if err != nil {
+		return err
+	}
+
+	req, err := http.NewRequest("POST", insightsURL+"/v0/oss/users", bytes.NewBuffer(out))
+	if err != nil {
+		return err
+	}
+	req.Header.Add("content-type", "application/json")
+
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return err
+	}
+
+	responseBody, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return fmt.Errorf("error reading response: %s", err.Error())
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("non-zero response (%d) from api: %s", resp.StatusCode, string(responseBody))
+	}
+
+	return nil
 }
