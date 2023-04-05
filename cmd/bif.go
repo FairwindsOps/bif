@@ -22,12 +22,8 @@ import (
 	"net/http"
 )
 
-func getBaseImage(args []string) error {
-	if len(args) != 1 {
-		return fmt.Errorf("The find command requires a single docker image reference as an argument.")
-	}
-
-	req, err := http.NewRequest("GET", fmt.Sprintf("https://bif-server-6biex2p5nq-uc.a.run.app/base?image_tag=%s", args[0]), nil)
+func getBaseImage(image string) error {
+	req, err := http.NewRequest("GET", fmt.Sprintf("%s/base?image_tag=%s", bifURL, image), nil)
 	if err != nil {
 		return fmt.Errorf("error creating http request: %s", err.Error())
 	}

@@ -30,6 +30,7 @@ var (
 	versionCommit string
 	cfgFile       string
 	token         string
+	bifURL        string
 )
 
 // rootCmd represents the base command when called without any subcommands
@@ -43,11 +44,15 @@ var rootCmd = &cobra.Command{
 }
 
 var findCmd = &cobra.Command{
-	Use:     "find",
+	Use:     "find [image]",
 	Short:   "Finds the base image and any known vulnerabilities",
 	PreRunE: validateTokenPreRunE,
 	Run: func(cmd *cobra.Command, args []string) {
-		if err := getBaseImage(args); err != nil {
+		if len(args) != 1 {
+			fmt.Println("The find command requires a single docker image reference as an argument.")
+			os.Exit(1)
+		}
+		if err := getBaseImage(args[0]); err != nil {
 			fmt.Println(err.Error())
 			os.Exit(1)
 		}
@@ -79,6 +84,7 @@ func init() {
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.bif.yaml)")
 
 	findCmd.PersistentFlags().StringVarP(&token, "insights-oss-token", "t", "", "Your Fairwinds OSS Token")
+	findCmd.PersistentFlags().StringVar(&bifURL, "bif-url", "https://bif-server-6biex2p5nq-uc.a.run.app", "The URL of the BIF server.")
 
 	rootCmd.AddCommand(findCmd)
 	rootCmd.AddCommand(versionCmd)
