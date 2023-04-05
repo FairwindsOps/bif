@@ -20,29 +20,40 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+
+	"gopkg.in/yaml.v3"
 )
 
 type Client struct {
-	APIURL string `json:"apiURL"`
-	Token  string `json:"token"`
+	APIURL       string `json:"apiURL"`
+	Token        string `json:"token"`
+	OutputFormat string `json:"outputFormat"`
 }
 
-func (c *Client) GetBaseImage(image string) error {
-	report, err := c.getBaseImageReport(image)
-	if err != nil {
-		return err
-	}
-
-	output, err := json.MarshalIndent(report, "", "  ")
-	if err != nil {
-		return err
-	}
-	fmt.Println(string(output))
-
-	return nil
+var OutputFormats []string = []string{
+	"json",
+	"yaml",
 }
 
-func (c *Client) getBaseImageReport(image string) (*BaseImageVulnerabilityReport, error) {
+func (c *Client) GetBaseImageOutput(image string) (string, error) {
+	report, err := c.GetBaseImageReport(image)
+	if err != nil {
+		return "", err
+	}
+
+	switch c.OutputFormat {
+	case "json":
+		output, err := json.MarshalIndent(report, "", "  ")
+		return string(output), err
+	case "yaml":
+		output, err := yaml.Marshal(report)
+		return string(output), err
+	default:
+		return "", fmt.Errorf("no valid output format found - must be one of %v", OutputFormats)
+	}
+}
+
+func (c *Client) GetBaseImageReport(image string) (*BaseImageVulnerabilityReport, error) {
 	req, err := http.NewRequest("GET", fmt.Sprintf("%s/base?image_tag=%s", c.APIURL, image), nil)
 	if err != nil {
 		return nil, fmt.Errorf("error creating http request: %s", err.Error())

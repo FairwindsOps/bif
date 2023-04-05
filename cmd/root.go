@@ -55,10 +55,12 @@ var findCmd = &cobra.Command{
 			fmt.Println("The find command requires a single docker image reference as an argument.")
 			os.Exit(1)
 		}
-		if err := bifClient.GetBaseImage(args[0]); err != nil {
+		output, err := bifClient.GetBaseImageOutput(args[0])
+		if err != nil {
 			fmt.Println(err.Error())
 			os.Exit(1)
 		}
+		fmt.Println(output)
 	},
 }
 
@@ -99,6 +101,7 @@ func init() {
 
 	findCmd.PersistentFlags().StringVarP(&bifClient.Token, "insights-oss-token", "t", "", "Your Fairwinds OSS Token")
 	findCmd.PersistentFlags().StringVar(&bifClient.APIURL, "bif-url", "https://bif-server-6biex2p5nq-uc.a.run.app", "The URL of the BIF server.")
+	findCmd.PersistentFlags().StringVarP(&bifClient.OutputFormat, "output", "o", "json", fmt.Sprintf("The output format to use. Must be one of %v", bif.OutputFormats))
 
 	requestTokenCmd.PersistentFlags().StringVar(&insightsURL, "insights-url", "https://insights.fairwinds.com", "The Insights API URL")
 
