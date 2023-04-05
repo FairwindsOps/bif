@@ -13,7 +13,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 */
-package cmd
+package bif
 
 import (
 	"encoding/json"
@@ -22,12 +22,17 @@ import (
 	"net/http"
 )
 
-func getBaseImage(image string) error {
-	req, err := http.NewRequest("GET", fmt.Sprintf("%s/base?image_tag=%s", bifURL, image), nil)
+type Client struct {
+	APIURL string `json:"apiURL"`
+	Token  string `json:"token"`
+}
+
+func (c *Client) GetBaseImage(image string) error {
+	req, err := http.NewRequest("GET", fmt.Sprintf("%s/base?image_tag=%s", c.APIURL, image), nil)
 	if err != nil {
 		return fmt.Errorf("error creating http request: %s", err.Error())
 	}
-	req.Header.Add("Authorization", "Bearer "+token)
+	req.Header.Add("Authorization", "Bearer "+c.Token)
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return fmt.Errorf("error making request: %s", err.Error())

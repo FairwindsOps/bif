@@ -29,15 +29,17 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
+
+	"github.com/fairwindsops/bif"
 )
 
 var (
 	version       string
 	versionCommit string
 	cfgFile       string
-	token         string
-	bifURL        string
 	insightsURL   string
+
+	bifClient bif.Client
 )
 
 // rootCmd represents the base command when called without any subcommands
@@ -59,7 +61,7 @@ var findCmd = &cobra.Command{
 			fmt.Println("The find command requires a single docker image reference as an argument.")
 			os.Exit(1)
 		}
-		if err := getBaseImage(args[0]); err != nil {
+		if err := bifClient.GetBaseImage(args[0]); err != nil {
 			fmt.Println(err.Error())
 			os.Exit(1)
 		}
@@ -78,7 +80,7 @@ var requestTokenCmd = &cobra.Command{
 }
 
 func validateTokenPreRunE(cmd *cobra.Command, args []string) error {
-	if token == "" {
+	if bifClient.Token == "" {
 		return fmt.Errorf("You must supply a token via the --insights-oss-token flag.")
 	}
 	return nil
@@ -101,8 +103,8 @@ func init() {
 
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.bif.yaml)")
 
-	findCmd.PersistentFlags().StringVarP(&token, "insights-oss-token", "t", "", "Your Fairwinds OSS Token")
-	findCmd.PersistentFlags().StringVar(&bifURL, "bif-url", "https://bif-server-6biex2p5nq-uc.a.run.app", "The URL of the BIF server.")
+	findCmd.PersistentFlags().StringVarP(&bifClient.Token, "insights-oss-token", "t", "", "Your Fairwinds OSS Token")
+	findCmd.PersistentFlags().StringVar(&bifClient.APIURL, "bif-url", "https://bif-server-6biex2p5nq-uc.a.run.app", "The URL of the BIF server.")
 
 	requestTokenCmd.PersistentFlags().StringVar(&insightsURL, "insights-url", "https://insights.fairwinds.com", "The Insights API URL")
 
