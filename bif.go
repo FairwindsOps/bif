@@ -21,6 +21,7 @@ import (
 	"io"
 	"net/http"
 
+	"github.com/thoas/go-funk"
 	"gopkg.in/yaml.v3"
 )
 
@@ -33,6 +34,15 @@ type Client struct {
 var OutputFormats []string = []string{
 	"json",
 	"yaml",
+	"table",
+}
+
+func (c *Client) ValidateOptions() error {
+	if !funk.Contains(OutputFormats, c.OutputFormat) {
+		return fmt.Errorf("no valid output format found - must be one of %v", OutputFormats)
+	}
+
+	return nil
 }
 
 func (c *Client) GetBaseImageOutput(image string) (string, error) {
@@ -48,6 +58,10 @@ func (c *Client) GetBaseImageOutput(image string) (string, error) {
 	case "yaml":
 		output, err := yaml.Marshal(report)
 		return string(output), err
+	case "table":
+		output, err := report.TableOutput()
+		return string(output), err
+
 	default:
 		return "", fmt.Errorf("no valid output format found - must be one of %v", OutputFormats)
 	}

@@ -47,9 +47,14 @@ var rootCmd = &cobra.Command{
 }
 
 var findCmd = &cobra.Command{
-	Use:     "find [image]",
-	Short:   "Finds the base image and any known vulnerabilities",
-	PreRunE: validateTokenPreRunE,
+	Use:   "find [image]",
+	Short: "Finds the base image and any known vulnerabilities",
+	PreRunE: func(cmd *cobra.Command, args []string) error {
+		if bifClient.Token == "" {
+			return fmt.Errorf("You must supply a token via the --insights-oss-token flag.")
+		}
+		return bifClient.ValidateOptions()
+	},
 	Run: func(cmd *cobra.Command, args []string) {
 		if len(args) != 1 {
 			fmt.Println("The find command requires a single docker image reference as an argument.")
@@ -73,13 +78,6 @@ var requestTokenCmd = &cobra.Command{
 			os.Exit(1)
 		}
 	},
-}
-
-func validateTokenPreRunE(cmd *cobra.Command, args []string) error {
-	if bifClient.Token == "" {
-		return fmt.Errorf("You must supply a token via the --insights-oss-token flag.")
-	}
-	return nil
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.
