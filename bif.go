@@ -28,19 +28,34 @@ type Client struct {
 }
 
 func (c *Client) GetBaseImage(image string) error {
+	report, err := c.getBaseImageReport(image)
+	if err != nil {
+		return err
+	}
+
+	output, err := json.MarshalIndent(report, "", "  ")
+	if err != nil {
+		return err
+	}
+	fmt.Println(string(output))
+
+	return nil
+}
+
+func (c *Client) getBaseImageReport(image string) (*BaseImageVulnerabilityReport, error) {
 	req, err := http.NewRequest("GET", fmt.Sprintf("%s/base?image_tag=%s", c.APIURL, image), nil)
 	if err != nil {
-		return fmt.Errorf("error creating http request: %s", err.Error())
+		return nil, fmt.Errorf("error creating http request: %s", err.Error())
 	}
 	req.Header.Add("Authorization", "Bearer "+c.Token)
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
-		return fmt.Errorf("error making request: %s", err.Error())
+		return nil, fmt.Errorf("error making request: %s", err.Error())
 	}
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return fmt.Errorf("error reading response: %s", err.Error())
+		return nil, fmt.Errorf("error reading response: %s", err.Error())
 	}
 
 	if resp.StatusCode != http.StatusOK {
@@ -52,18 +67,12 @@ func (c *Client) GetBaseImage(image string) error {
 			fmt.Printf("could not read response %s\n", err.Error())
 		}
 
-		return fmt.Errorf("got %d status from bif: %s", resp.StatusCode, errorMessage.Response)
+		return nil, fmt.Errorf("got %d status from bif: %s", resp.StatusCode, errorMessage.Response)
 	}
 
 	report := &BaseImageVulnerabilityReport{}
 	if err := json.Unmarshal(body, report); err != nil {
-		return err
+		return nil, err
 	}
-	output, err := json.MarshalIndent(report, "", "  ")
-	if err != nil {
-		return err
-	}
-	fmt.Println(string(output))
-
-	return nil
+	return report, nil
 }
