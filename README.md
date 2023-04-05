@@ -1,4 +1,4 @@
-# BIF - The Fairwinds Base Image Finder
+# BIF - The Fairwinds Base Image Finder Client
 
 This utility interacts with the Fairwinds BIF-Server to find base images and report on their vulnerabilities.
 
