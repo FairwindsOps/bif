@@ -26,8 +26,10 @@ import (
 )
 
 var (
-	cfgFile string
-	token   string
+	version       string
+	versionCommit string
+	cfgFile       string
+	token         string
 )
 
 // rootCmd represents the base command when called without any subcommands
@@ -61,7 +63,10 @@ func validateTokenPreRunE(cmd *cobra.Command, args []string) error {
 
 // Execute adds all child commands to the root command and sets flags appropriately.
 // This is called by main.main(). It only needs to happen once to the rootCmd.
-func Execute() {
+func Execute(VERSION, COMMIT string) {
+	version = VERSION
+	versionCommit = COMMIT
+
 	err := rootCmd.Execute()
 	if err != nil {
 		os.Exit(1)
@@ -76,6 +81,7 @@ func init() {
 	findCmd.PersistentFlags().StringVarP(&token, "insights-oss-token", "t", "", "Your Fairwinds OSS Token")
 
 	rootCmd.AddCommand(findCmd)
+	rootCmd.AddCommand(versionCmd)
 }
 
 // initConfig reads in config file and ENV variables if set.
