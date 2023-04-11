@@ -3,7 +3,6 @@ package cmd
 import "go.uber.org/zap/zapcore"
 
 var (
-	logLevel      *zapcore.Level
 	encoderConfig = zapcore.EncoderConfig{
 		TimeKey:        "time",
 		LevelKey:       "severity",
