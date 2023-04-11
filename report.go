@@ -16,8 +16,8 @@ limitations under the License.
 package bif
 
 import (
-	"os"
 	"strconv"
+	"strings"
 	"time"
 
 	tw "github.com/olekukonko/tablewriter"
@@ -53,8 +53,9 @@ type ImageUpgrade struct {
 	FixedVulnerabilities []*ReportVulnerability `json:"fixed_vulnerabilities"`
 }
 
-func (report *BaseImageVulnerabilityReport) TableOutput(colorize bool) ([]byte, error) {
-	table := tw.NewWriter(os.Stdout)
+func (report *BaseImageVulnerabilityReport) TableOutput(colorize bool) (string, error) {
+	tableString := &strings.Builder{}
+	table := tw.NewWriter(tableString)
 	table.SetHeader([]string{"Base Image", "Last Scan", "CVE", "Severity", "CVSS", "Fixed In"})
 	table.SetBorder(false)
 
@@ -137,5 +138,5 @@ func (report *BaseImageVulnerabilityReport) TableOutput(colorize bool) ([]byte, 
 	table.SetAutoMergeCells(false)
 	table.SetAutoMergeCellsByColumnIndex([]int{0, 1})
 	table.Render()
-	return []byte{}, nil
+	return tableString.String(), nil
 }

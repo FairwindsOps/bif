@@ -16,6 +16,7 @@ limitations under the License.
 package bif
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -30,6 +31,10 @@ type Client struct {
 	Token          string `json:"token"`
 	OutputFormat   string `json:"outputFormat"`
 	ColorizeOutput bool   `json:"colorizeOutput"`
+
+	// Inputs
+	Image       string
+	ImageLayers []string
 }
 
 var OutputFormats []string = []string{
@@ -43,13 +48,33 @@ func (c *Client) ValidateOptions() error {
 		return fmt.Errorf("no valid output format found - must be one of %v", OutputFormats)
 	}
 
+	if c.ImageLayers == nil && c.Image == "" {
+		return fmt.Errorf("You must specify either --image or --image-layers.")
+	}
+
+	if c.ImageLayers != nil && c.Image != "" {
+		return fmt.Errorf("Please specify only one of --image or --image-layers.")
+	}
+
 	return nil
 }
 
-func (c *Client) GetBaseImageOutput(image string) (string, error) {
-	report, err := c.GetBaseImageReport(image)
-	if err != nil {
-		return "", err
+func (c *Client) GetBaseImageOutput() (string, error) {
+	var report *BaseImageVulnerabilityReport
+	if c.Image != "" {
+		var err error
+		report, err = c.GetBaseImageReport(c.Image)
+		if err != nil {
+			return "", err
+		}
+	}
+
+	if c.ImageLayers != nil {
+		var err error
+		report, err = c.GetImageLayerReport(c.ImageLayers)
+		if err != nil {
+			return "", err
+		}
 	}
 
 	switch c.OutputFormat {
@@ -61,7 +86,7 @@ func (c *Client) GetBaseImageOutput(image string) (string, error) {
 		return string(output), err
 	case "table":
 		output, err := report.TableOutput(c.ColorizeOutput)
-		return string(output), err
+		return output, err
 
 	default:
 		return "", fmt.Errorf("no valid output format found - must be one of %v", OutputFormats)
@@ -73,6 +98,44 @@ func (c *Client) GetBaseImageReport(image string) (*BaseImageVulnerabilityReport
 	if err != nil {
 		return nil, fmt.Errorf("error creating http request: %s", err.Error())
 	}
+	body, err := c.MakeRequest(req)
+	if err != nil {
+		return nil, err
+	}
+
+	report := &BaseImageVulnerabilityReport{}
+	if err := json.Unmarshal(body, report); err != nil {
+		return nil, err
+	}
+	return report, nil
+}
+
+func (c *Client) GetImageLayerReport(imageLayers []string) (*BaseImageVulnerabilityReport, error) {
+	payload, err := json.Marshal(c.ImageLayers)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", fmt.Sprintf("%s/base", c.APIURL), bytes.NewBuffer(payload))
+	if err != nil {
+		return nil, fmt.Errorf("error creating http request: %s", err.Error())
+	}
+
+	body, err := c.MakeRequest(req)
+	if err != nil {
+		return nil, err
+	}
+
+	report := &BaseImageVulnerabilityReport{}
+	if err := json.Unmarshal(body, report); err != nil {
+		return nil, err
+	}
+	return report, nil
+}
+
+// MakeRequest performs an HTTP request using the client. It adds the proper headers
+// as well as authentication and does error handling
+func (c *Client) MakeRequest(req *http.Request) ([]byte, error) {
 	req.Header.Add("Authorization", "Bearer "+c.Token)
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
@@ -96,9 +159,5 @@ func (c *Client) GetBaseImageReport(image string) (*BaseImageVulnerabilityReport
 		return nil, fmt.Errorf("got %d status from bif: %s", resp.StatusCode, errorMessage.Response)
 	}
 
-	report := &BaseImageVulnerabilityReport{}
-	if err := json.Unmarshal(body, report); err != nil {
-		return nil, err
-	}
-	return report, nil
+	return body, nil
 }
