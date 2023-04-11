@@ -55,13 +55,13 @@ type ImageUpgrade struct {
 	FixedVulnerabilities []*ReportVulnerability `json:"fixed_vulnerabilities"`
 }
 
-func (report *BaseImageVulnerabilityReport) TableOutput(colorize bool) (string, error) {
+func (c *Client) TableOutput(report *BaseImageVulnerabilityReport) (string, error) {
 	tableString := &strings.Builder{}
 	table := tw.NewWriter(tableString)
 	table.SetHeader([]string{"Base Image", "Last Scan", "CVE", "Severity", "CVSS", "Fixed In"})
 	table.SetBorder(false)
 
-	if colorize {
+	if c.ColorizeOutput {
 		table.SetHeaderColor(
 			tw.Colors{tw.Bold, tw.FgCyanColor},
 			tw.Colors{tw.FgCyanColor},
@@ -74,19 +74,54 @@ func (report *BaseImageVulnerabilityReport) TableOutput(colorize bool) (string, 
 
 	for _, baseImage := range report.BaseImages {
 
+		sortErrors := false
 		// Sort with critical at the top
 		sort.Slice(baseImage.Vulnerabilities, func(i, j int) bool {
-			sortMap := map[string]int{
-				"CRITICAL": 4,
-				"HIGH":     3,
-				"MEDIUM":   2,
-				"LOW":      1,
-				"UKNOWN":   0,
-			}
+			switch c.SortBy {
+			case "severity":
+				sortMap := map[string]int{
+					"CRITICAL": 4,
+					"HIGH":     3,
+					"MEDIUM":   2,
+					"LOW":      1,
+					"UKNOWN":   0,
+				}
 
-			return sortMap[baseImage.Vulnerabilities[i].Severity] > sortMap[baseImage.Vulnerabilities[j].Severity]
+				switch c.SortOrder {
+				case "desc":
+					return sortMap[baseImage.Vulnerabilities[i].Severity] > sortMap[baseImage.Vulnerabilities[j].Severity]
+				case "asc":
+					return sortMap[baseImage.Vulnerabilities[i].Severity] < sortMap[baseImage.Vulnerabilities[j].Severity]
+				case "default":
+					sortErrors = true
+				}
+			case "cvss":
+				switch c.SortOrder {
+				case "desc":
+					return baseImage.Vulnerabilities[i].CVSS > baseImage.Vulnerabilities[j].CVSS
+				case "asc":
+					return baseImage.Vulnerabilities[i].CVSS < baseImage.Vulnerabilities[j].CVSS
+				default:
+					sortErrors = true
+				}
+			case "id":
+				switch c.SortOrder {
+				case "desc":
+					return baseImage.Vulnerabilities[i].ID < baseImage.Vulnerabilities[j].ID
+				case "asc":
+					return baseImage.Vulnerabilities[i].ID > baseImage.Vulnerabilities[j].ID
+				default:
+					sortErrors = true
+				}
+			default:
+				sortErrors = true
+			}
+			return false
 		})
 
+		if sortErrors {
+			return "", fmt.Errorf("A default condition was encountered during sorting, this is likely a bug with the consumer of this library. Please report it.")
+		}
 		for _, vuln := range baseImage.Vulnerabilities {
 			fixedIn := []string{}
 			if baseImage.Upgrades != nil {
@@ -128,7 +163,7 @@ func (report *BaseImageVulnerabilityReport) TableOutput(colorize bool) (string, 
 			lowColor := []tw.Colors{{tw.FgCyanColor}, {tw.FgCyanColor}, {tw.FgHiCyanColor}, {tw.Bold, tw.FgHiCyanColor}, {tw.Bold, tw.FgHiCyanColor}, {tw.FgCyanColor}}
 			defaultColor := []tw.Colors{{tw.FgCyanColor}, {tw.FgCyanColor}}
 
-			if !colorize {
+			if !c.ColorizeOutput {
 				criticalHighColor = []tw.Colors{}
 				mediumColor = []tw.Colors{}
 				lowColor = []tw.Colors{}

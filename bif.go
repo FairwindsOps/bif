@@ -21,16 +21,21 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strings"
 
 	"github.com/thoas/go-funk"
 	"gopkg.in/yaml.v3"
 )
 
 type Client struct {
-	APIURL         string `json:"apiURL"`
-	Token          string `json:"token"`
+	APIURL string `json:"apiURL"`
+	Token  string `json:"token"`
+
+	// Table Output Options
 	OutputFormat   string `json:"outputFormat"`
 	ColorizeOutput bool   `json:"colorizeOutput"`
+	SortBy         string `json:"sortBy"`
+	SortOrder      string `json:"sortOrder"`
 
 	// Inputs
 	Image       string
@@ -43,9 +48,30 @@ var OutputFormats []string = []string{
 	"table",
 }
 
+var SortColumns []string = []string{
+	"id",
+	"severity",
+	"cvss",
+}
+
+var SortOrder []string = []string{
+	"asc",
+	"desc",
+}
+
 func (c *Client) ValidateOptions() error {
 	if !funk.Contains(OutputFormats, c.OutputFormat) {
 		return fmt.Errorf("no valid output format found - must be one of %v", OutputFormats)
+	}
+
+	c.SortBy = strings.ToLower(c.SortBy)
+	if !funk.Contains(SortColumns, c.SortBy) {
+		return fmt.Errorf("invalid sort-by selection - must be one of %v", SortColumns)
+	}
+
+	c.SortOrder = strings.ToLower(c.SortOrder)
+	if !funk.Contains(SortOrder, c.SortOrder) {
+		return fmt.Errorf("invalid sort-order selection - must be one of %v", SortOrder)
 	}
 
 	if c.ImageLayers == nil && c.Image == "" {
@@ -85,7 +111,7 @@ func (c *Client) GetBaseImageOutput() (string, error) {
 		output, err := yaml.Marshal(report)
 		return string(output), err
 	case "table":
-		output, err := report.TableOutput(c.ColorizeOutput)
+		output, err := c.TableOutput(report)
 		return output, err
 
 	default:

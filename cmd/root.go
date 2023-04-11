@@ -51,6 +51,8 @@ func init() {
 	findCmd.PersistentFlags().BoolVar(&bifClient.ColorizeOutput, "color", true, "If true, table output will be colorized")
 	findCmd.PersistentFlags().StringSliceVarP(&bifClient.ImageLayers, "image-layers", "l", nil, "A list of image layers to send. Mutually exclusive with --image")
 	findCmd.PersistentFlags().StringVarP(&bifClient.Image, "image", "i", "", "An image reference in the form of <repository>:<tag>. Must be a publicly-available image. Mutually exclusive with --image-layers")
+	findCmd.PersistentFlags().StringVar(&bifClient.SortBy, "sort-by", "Severity", fmt.Sprintf("What to sort the table output by. Must be one of %v", bif.SortColumns))
+	findCmd.PersistentFlags().StringVar(&bifClient.SortOrder, "sort-order", "desc", fmt.Sprintf("Sort order for table output. Must be one of %v", bif.SortOrder))
 
 	findCmd.PersistentFlags().BoolVar(&interactive, "interactive", false, "If true, uses the interactive pager")
 
