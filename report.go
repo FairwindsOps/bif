@@ -99,6 +99,7 @@ func (c *Client) TableOutput(report *BaseImageVulnerabilityReport) (string, erro
 
 			var lastScan string
 			if baseImage.LastScan == nil {
+				c.Logger.Debugw("lastScan value was nil, setting to unknown", "baseImage", baseImage)
 				lastScan = "unknown"
 			} else {
 				lastScan = baseImage.LastScan.Format("2006-01-02")
@@ -168,6 +169,7 @@ func (c *Client) sortVulnerabilities(baseImage *ReportBaseImage) error {
 			case "asc":
 				return sortMap[baseImage.Vulnerabilities[i].Severity] < sortMap[baseImage.Vulnerabilities[j].Severity]
 			case "default":
+				c.Logger.Debugw("default condition reached on sortOrder", "sortBy", c.SortBy, "sortOrder", c.SortOrder)
 				sortErrors = true
 			}
 		case "cvss":
@@ -177,6 +179,7 @@ func (c *Client) sortVulnerabilities(baseImage *ReportBaseImage) error {
 			case "asc":
 				return baseImage.Vulnerabilities[i].CVSS < baseImage.Vulnerabilities[j].CVSS
 			default:
+				c.Logger.Debugw("default condition reached on sortOrder", "sortBy", c.SortBy, "sortOrder", c.SortOrder)
 				sortErrors = true
 			}
 		case "id":
@@ -186,16 +189,18 @@ func (c *Client) sortVulnerabilities(baseImage *ReportBaseImage) error {
 			case "asc":
 				return baseImage.Vulnerabilities[i].ID > baseImage.Vulnerabilities[j].ID
 			default:
+				c.Logger.Debugw("default condition reached on sortOrder", "sortBy", c.SortBy, "sortOrder", c.SortOrder)
 				sortErrors = true
 			}
 		default:
 			sortErrors = true
 		}
+		c.Logger.Debugw("default condition reached on SortBy", "sortBy", c.SortBy, "sortOrder", c.SortOrder)
 		return false
 	})
 
 	if sortErrors {
-		return fmt.Errorf("A default condition was encountered during sorting, this is likely a bug with the consumer of this library. Please report it.")
+		return fmt.Errorf("A default condition was encountered during sorting, this is likely a bug with the consumer of this library. Please re-run with --debug and report the issue.")
 	}
 	return nil
 }

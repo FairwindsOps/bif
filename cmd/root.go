@@ -24,6 +24,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
+	"go.uber.org/zap"
 
 	"github.com/fairwindsops/bif"
 )
@@ -33,6 +34,7 @@ var (
 	versionCommit string
 	cfgFile       string
 	insightsURL   string
+	debug         bool
 
 	// interactive enables the interactive pager
 	interactive bool
@@ -44,6 +46,7 @@ func init() {
 	cobra.OnInitialize(initConfig)
 
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.bif.yaml)")
+	rootCmd.PersistentFlags().BoolVar(&debug, "debug", false, "If true, debug logging will be enabled")
 
 	findCmd.PersistentFlags().StringVarP(&bifClient.Token, "insights-oss-token", "t", "", "Your Fairwinds OSS Token")
 	findCmd.PersistentFlags().StringVar(&bifClient.APIURL, "bif-url", "https://bif-server-6biex2p5nq-uc.a.run.app", "The URL of the BIF server.")
@@ -53,13 +56,11 @@ func init() {
 	findCmd.PersistentFlags().StringVarP(&bifClient.Image, "image", "i", "", "An image reference in the form of <repository>:<tag>. Must be a publicly-available image. Mutually exclusive with --image-layers")
 	findCmd.PersistentFlags().StringVar(&bifClient.SortBy, "sort-by", "Severity", fmt.Sprintf("What to sort the table output by. Must be one of %v", bif.SortColumns))
 	findCmd.PersistentFlags().StringVar(&bifClient.SortOrder, "sort-order", "desc", fmt.Sprintf("Sort order for table output. Must be one of %v", bif.SortOrder))
-
 	findCmd.PersistentFlags().BoolVar(&interactive, "interactive", false, "If true, uses the interactive pager")
 
 	requestTokenCmd.PersistentFlags().StringVar(&insightsURL, "insights-url", "https://insights.fairwinds.com", "The Insights API URL")
 
 	rootCmd.AddCommand(findCmd)
-	rootCmd.AddCommand(versionCmd)
 	rootCmd.AddCommand(requestTokenCmd)
 }
 
@@ -68,6 +69,25 @@ var rootCmd = &cobra.Command{
 	Use:   "bif",
 	Short: "The Fairwinds Base Image Finder (BIF) Client",
 	Long:  ``,
+	PersistentPreRun: func(cmd *cobra.Command, args []string) {
+		logConfig := &zap.Config{
+			Encoding:         "json",
+			EncoderConfig:    encoderConfig,
+			OutputPaths:      []string{"stderr"},
+			ErrorOutputPaths: []string{"stderr"},
+			Level:            zap.NewAtomicLevelAt(zap.InfoLevel),
+		}
+
+		if debug {
+			logConfig.Level = zap.NewAtomicLevelAt(zap.DebugLevel)
+		}
+		logger, err := logConfig.Build(zap.AddStacktrace(zap.DPanicLevel))
+		if err != nil {
+			fmt.Println("Failed to initialize logger.")
+			os.Exit(1)
+		}
+		bifClient.Logger = logger.Sugar()
+	},
 	RunE: func(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("You must specify a sub-command.")
 	},
@@ -97,7 +117,7 @@ var findCmd = &cobra.Command{
 			)
 
 			if _, err := p.Run(); err != nil {
-				fmt.Println("could not run program:", err)
+				bifClient.Logger.Fatalf("could not run program", "error", err)
 				os.Exit(1)
 			}
 		} else {

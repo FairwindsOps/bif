@@ -24,6 +24,7 @@ import (
 	"strings"
 
 	"github.com/thoas/go-funk"
+	"go.uber.org/zap"
 	"gopkg.in/yaml.v3"
 )
 
@@ -40,6 +41,9 @@ type Client struct {
 	// Inputs
 	Image       string
 	ImageLayers []string
+
+	// Logger is an instance of the zap logger you can use to configure logging.
+	Logger *zap.SugaredLogger
 }
 
 var OutputFormats []string = []string{
@@ -81,6 +85,8 @@ func (c *Client) ValidateOptions() error {
 	if c.ImageLayers != nil && c.Image != "" {
 		return fmt.Errorf("Please specify only one of --image or --image-layers.")
 	}
+
+	c.Logger.Debugw("client options validated", "client", c)
 
 	return nil
 }
