@@ -1,3 +1,18 @@
+/*
+Copyright © 2023 FairwindsOps, Inc.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+	http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
 package cmd
 
 import (
@@ -9,12 +24,8 @@ import (
 	"github.com/charmbracelet/lipgloss"
 )
 
-// You generally won't need this unless you're processing stuff with
-// complicated ANSI escape sequences. Turn it on if you notice flickering.
-//
-// Also keep in mind that high performance rendering only works for programs
-// that use the full size of the terminal. We're enabling that below with
-// tea.EnterAltScreen().
+// source https://github.com/charmbracelet/bubbletea/blob/master/examples/pager/main.go
+
 const useHighPerformanceRenderer = false
 
 var (
@@ -59,21 +70,11 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		verticalMarginHeight := headerHeight + footerHeight
 
 		if !m.ready {
-			// Since this program is using the full size of the viewport we
-			// need to wait until we've received the window dimensions before
-			// we can initialize the viewport. The initial dimensions come in
-			// quickly, though asynchronously, which is why we wait for them
-			// here.
 			m.viewport = viewport.New(msg.Width, msg.Height-verticalMarginHeight)
 			m.viewport.YPosition = headerHeight
 			m.viewport.HighPerformanceRendering = useHighPerformanceRenderer
 			m.viewport.SetContent(m.content)
 			m.ready = true
-
-			// This is only necessary for high performance rendering, which in
-			// most cases you won't need.
-			//
-			// Render the viewport one line below the header.
 			m.viewport.YPosition = headerHeight + 1
 		} else {
 			m.viewport.Width = msg.Width
@@ -81,15 +82,10 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 
 		if useHighPerformanceRenderer {
-			// Render (or re-render) the whole viewport. Necessary both to
-			// initialize the viewport and when the window is resized.
-			//
-			// This is needed for high-performance rendering only.
 			cmds = append(cmds, viewport.Sync(m.viewport))
 		}
 	}
 
-	// Handle keyboard and mouse events in the viewport
 	m.viewport, cmd = m.viewport.Update(msg)
 	cmds = append(cmds, cmd)
 
