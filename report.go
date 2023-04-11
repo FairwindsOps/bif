@@ -73,54 +73,8 @@ func (c *Client) TableOutput(report *BaseImageVulnerabilityReport) (string, erro
 	}
 
 	for _, baseImage := range report.BaseImages {
-
-		sortErrors := false
-		// Sort with critical at the top
-		sort.Slice(baseImage.Vulnerabilities, func(i, j int) bool {
-			switch c.SortBy {
-			case "severity":
-				sortMap := map[string]int{
-					"CRITICAL": 4,
-					"HIGH":     3,
-					"MEDIUM":   2,
-					"LOW":      1,
-					"UKNOWN":   0,
-				}
-
-				switch c.SortOrder {
-				case "desc":
-					return sortMap[baseImage.Vulnerabilities[i].Severity] > sortMap[baseImage.Vulnerabilities[j].Severity]
-				case "asc":
-					return sortMap[baseImage.Vulnerabilities[i].Severity] < sortMap[baseImage.Vulnerabilities[j].Severity]
-				case "default":
-					sortErrors = true
-				}
-			case "cvss":
-				switch c.SortOrder {
-				case "desc":
-					return baseImage.Vulnerabilities[i].CVSS > baseImage.Vulnerabilities[j].CVSS
-				case "asc":
-					return baseImage.Vulnerabilities[i].CVSS < baseImage.Vulnerabilities[j].CVSS
-				default:
-					sortErrors = true
-				}
-			case "id":
-				switch c.SortOrder {
-				case "desc":
-					return baseImage.Vulnerabilities[i].ID < baseImage.Vulnerabilities[j].ID
-				case "asc":
-					return baseImage.Vulnerabilities[i].ID > baseImage.Vulnerabilities[j].ID
-				default:
-					sortErrors = true
-				}
-			default:
-				sortErrors = true
-			}
-			return false
-		})
-
-		if sortErrors {
-			return "", fmt.Errorf("A default condition was encountered during sorting, this is likely a bug with the consumer of this library. Please report it.")
+		if err := c.sortVulnerabilities(baseImage); err != nil {
+			return "", err
 		}
 		for _, vuln := range baseImage.Vulnerabilities {
 			fixedIn := []string{}
@@ -191,4 +145,57 @@ func (c *Client) TableOutput(report *BaseImageVulnerabilityReport) (string, erro
 
 	outputString := fmt.Sprintf("Input: %s %s \n\n%s", report.ImageRepository, report.ImageTag, tableString.String())
 	return outputString, nil
+}
+
+func (c *Client) sortVulnerabilities(baseImage *ReportBaseImage) error {
+	sortErrors := false
+
+	// Sort with critical at the top
+	sort.Slice(baseImage.Vulnerabilities, func(i, j int) bool {
+		switch c.SortBy {
+		case "severity":
+			sortMap := map[string]int{
+				"CRITICAL": 4,
+				"HIGH":     3,
+				"MEDIUM":   2,
+				"LOW":      1,
+				"UKNOWN":   0,
+			}
+
+			switch c.SortOrder {
+			case "desc":
+				return sortMap[baseImage.Vulnerabilities[i].Severity] > sortMap[baseImage.Vulnerabilities[j].Severity]
+			case "asc":
+				return sortMap[baseImage.Vulnerabilities[i].Severity] < sortMap[baseImage.Vulnerabilities[j].Severity]
+			case "default":
+				sortErrors = true
+			}
+		case "cvss":
+			switch c.SortOrder {
+			case "desc":
+				return baseImage.Vulnerabilities[i].CVSS > baseImage.Vulnerabilities[j].CVSS
+			case "asc":
+				return baseImage.Vulnerabilities[i].CVSS < baseImage.Vulnerabilities[j].CVSS
+			default:
+				sortErrors = true
+			}
+		case "id":
+			switch c.SortOrder {
+			case "desc":
+				return baseImage.Vulnerabilities[i].ID < baseImage.Vulnerabilities[j].ID
+			case "asc":
+				return baseImage.Vulnerabilities[i].ID > baseImage.Vulnerabilities[j].ID
+			default:
+				sortErrors = true
+			}
+		default:
+			sortErrors = true
+		}
+		return false
+	})
+
+	if sortErrors {
+		return fmt.Errorf("A default condition was encountered during sorting, this is likely a bug with the consumer of this library. Please report it.")
+	}
+	return nil
 }
