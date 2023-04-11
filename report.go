@@ -17,6 +17,7 @@ package bif
 
 import (
 	"fmt"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -72,8 +73,21 @@ func (report *BaseImageVulnerabilityReport) TableOutput(colorize bool) (string, 
 	}
 
 	for _, baseImage := range report.BaseImages {
-		for _, vuln := range baseImage.Vulnerabilities {
 
+		// Sort with critical at the top
+		sort.Slice(baseImage.Vulnerabilities, func(i, j int) bool {
+			sortMap := map[string]int{
+				"CRITICAL": 4,
+				"HIGH":     3,
+				"MEDIUM":   2,
+				"LOW":      1,
+				"UKNOWN":   0,
+			}
+
+			return sortMap[baseImage.Vulnerabilities[i].Severity] > sortMap[baseImage.Vulnerabilities[j].Severity]
+		})
+
+		for _, vuln := range baseImage.Vulnerabilities {
 			fixedIn := []string{}
 			if baseImage.Upgrades != nil {
 				for _, upgrade := range *baseImage.Upgrades {
