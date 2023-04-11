@@ -16,6 +16,7 @@ limitations under the License.
 package bif
 
 import (
+	"fmt"
 	"strconv"
 	"strings"
 	"time"
@@ -138,5 +139,7 @@ func (report *BaseImageVulnerabilityReport) TableOutput(colorize bool) (string, 
 	table.SetAutoMergeCells(false)
 	table.SetAutoMergeCellsByColumnIndex([]int{0, 1})
 	table.Render()
-	return tableString.String(), nil
+
+	outputString := fmt.Sprintf("Input: %s %s \n\n%s", report.ImageRepository, report.ImageTag, tableString.String())
+	return outputString, nil
 }

@@ -18,8 +18,7 @@ You will receive your token via email
 ### Extract Layers Using Skopeo and Find Base Image
 
 ```
-export IMAGE=us-docker.pkg.dev/fairwinds-ops/oss/polaris:7.0.0
-bif find --image-layers $(skopeo inspect docker://$IMAGE | jq .Layers[] -rc)
+bif find --image-layers $(skopeo inspect docker://us-docker.pkg.dev/fairwinds-ops/oss/polaris:7.0.0 | jq .Layers[] -rc)
 
    BASE IMAGE   | LAST SCAN  |      CVE       | SEVERITY | CVSS |    FIXED IN     
 ----------------+------------+----------------+----------+------+-----------------
