@@ -188,7 +188,7 @@ func (c *Client) MakeRequest(req *http.Request) ([]byte, error) {
 			fmt.Printf("could not read response %s\n", err.Error())
 		}
 
-		return nil, fmt.Errorf("got %d status from bif: %s", resp.StatusCode, errorMessage.Response)
+		return nil, fmt.Errorf("got %d status from bif server: %s", resp.StatusCode, errorMessage.Response)
 	}
 
 	return body, nil
