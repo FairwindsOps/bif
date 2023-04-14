@@ -50,7 +50,7 @@ func requestInsightsOSSToken() error {
 		Project string `json:"project"`
 	}{
 		Email:   result,
-		Project: "saffire", // TODO: Update this once BIF is available as an option in the backend
+		Project: "bif",
 	}
 
 	out, err := json.Marshal(body)

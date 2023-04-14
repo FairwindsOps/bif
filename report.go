@@ -56,6 +56,9 @@ type ImageUpgrade struct {
 }
 
 func (c *Client) TableOutput(report *BaseImageVulnerabilityReport) (string, error) {
+	if len(report.BaseImages) < 1 {
+		return fmt.Sprintf("No base images found for %s:%s", report.ImageRepository, report.ImageTag), nil
+	}
 	tableString := &strings.Builder{}
 	table := tw.NewWriter(tableString)
 	table.SetHeader([]string{"Base Image", "Last Scan", "CVE", "Severity", "CVSS", "Fixed In"})

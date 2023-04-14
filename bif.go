@@ -179,6 +179,11 @@ func (c *Client) MakeRequest(req *http.Request) ([]byte, error) {
 		return nil, fmt.Errorf("error reading response: %s", err.Error())
 	}
 
+	rateLimit := resp.Header.Get("x-rate-limit-remaining")
+	if rateLimit != "" {
+		c.Logger.Debugw("rate limit remaining", "value", rateLimit)
+	}
+
 	if resp.StatusCode != http.StatusOK {
 		type BifError struct {
 			Response string
