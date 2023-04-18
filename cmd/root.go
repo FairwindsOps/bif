@@ -83,7 +83,7 @@ var rootCmd = &cobra.Command{
 		}
 		logger, err := logConfig.Build(zap.AddStacktrace(zap.DPanicLevel))
 		if err != nil {
-			fmt.Println("Failed to initialize logger.")
+			fmt.Fprintln(os.Stderr, "Failed to initialize logger.")
 			os.Exit(1)
 		}
 		bifClient.Logger = logger.Sugar()
@@ -105,7 +105,7 @@ var findCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		output, err := bifClient.GetBaseImageOutput()
 		if err != nil {
-			fmt.Println(err.Error())
+			fmt.Fprintln(os.Stderr, "error getting base image:", err.Error())
 			os.Exit(1)
 		}
 
@@ -131,7 +131,7 @@ var requestTokenCmd = &cobra.Command{
 	Short: "Requests an API token for BIF",
 	Run: func(cmd *cobra.Command, args []string) {
 		if err := requestInsightsOSSToken(); err != nil {
-			fmt.Println(err.Error())
+			fmt.Println("error requesting token: " + err.Error())
 			os.Exit(1)
 		}
 	},
