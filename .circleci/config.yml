@@ -1,0 +1,93 @@
+version: 2.1
+
+orbs:
+  rok8s: fairwinds/rok8s-scripts@11
+  oss-docs: fairwinds/oss-docs@0
+
+executors:
+  golang-exec:
+    docker:
+      - image: cimg/go:1.20
+
+references:
+  install_vault_alpine: &install_vault_alpine
+    run:
+      name: install hashicorp vault
+      command: |
+        apk --update add curl yq
+        cd /tmp
+        curl -LO https://releases.hashicorp.com/vault/1.12.2/vault_1.12.2_linux_amd64.zip
+        sha256sum vault_1.12.2_linux_amd64.zip | grep 116c143de377a77a7ea455a367d5e9fe5290458e8a941a6e2dd85d92aaedba67
+        unzip vault_1.12.2_linux_amd64.zip
+        mv vault /usr/bin/vault
+jobs:
+  test:
+    working_directory: /home/circleci/go/src/github.com/fairwindsops/bif
+    docker:
+      - image: cimg/go:1.20
+    steps:
+      - checkout
+      - run: go mod download && go mod verify
+      - run: go test -v ./... -coverprofile=coverage.txt -covermode=atomic
+  release:
+    working_directory: /home/circleci/go/src/github.com/fairwindsops/bif
+    resource_class: large
+    shell: /bin/bash
+    docker:
+      - image: goreleaser/goreleaser:v1.18.2
+        environment:
+          GO111MODULE: "on"
+    steps:
+      - checkout
+      - setup_remote_docker
+      - *install_vault_alpine
+      - rok8s/get_vault_env:
+          vault_path: repo/global/env
+      - rok8s/get_vault_env:
+          vault_path: repo/bif/env
+      - run:
+          name: docker login
+          command: |
+            docker login -u _json_key -p "$(echo $GCP_ARTIFACTREADWRITE_JSON_KEY | base64 -d)" us-docker.pkg.dev
+      - run: echo 'export GORELEASER_CURRENT_TAG="${CIRCLE_TAG}"' >> $BASH_ENV
+      - run: goreleaser
+  snapshot:
+    working_directory: /home/circleci/go/src/github.com/fairwindsops/bif
+    resource_class: large
+    docker:
+      - image: goreleaser/goreleaser:v1.18.2
+    steps:
+      - checkout
+      - setup_remote_docker
+      - run: goreleaser --snapshot --skip-sign
+      - store_artifacts:
+          path: dist
+          destination: snapshot
+workflows:
+  version: 2
+  test:
+    jobs:
+      - test
+      - snapshot:
+          requires:
+            - test
+          filters:
+            branches:
+              only: /.*/
+            tags:
+              ignore: /.*/
+  release:
+    jobs:
+      - oss-docs/publish-docs:
+          repository: bif
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              only: /^.*/
+      - release:
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              only: /.*/

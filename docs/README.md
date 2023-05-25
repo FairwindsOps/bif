@@ -2,10 +2,6 @@
 
 This utility interacts with the Fairwinds BIF-Server to find base images and report on their vulnerabilities.
 
-## Installation
-
-Download the latest binary from: https://github.com/FairwindsOps/bif/releases
-
 ## Usage
 
 ### Request a Token
