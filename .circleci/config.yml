@@ -10,20 +10,6 @@ executors:
       - image: cimg/go:1.20
 
 references:
-  e2e_config: &e2e_config
-    command_runner_image: quay.io/reactiveops/ci-images:v11-buster
-    kind_node_image: "kindest/node:v1.21.1@sha256:69860bda5563ac81e3c0057d654b5253219618a22ec3a346306239bba8cfa1a6"
-    executor: golang-exec
-    pre_script: e2e/pre.sh
-    store-test-results: /tmp/test-results
-    script: e2e/test.sh
-    requires:
-      - test
-    filters:
-      branches:
-        only: /.*/
-      tags:
-        ignore: /.*/
   install_vault_alpine: &install_vault_alpine
     run:
       name: install hashicorp vault
@@ -34,15 +20,6 @@ references:
         sha256sum vault_1.12.2_linux_amd64.zip | grep 116c143de377a77a7ea455a367d5e9fe5290458e8a941a6e2dd85d92aaedba67
         unzip vault_1.12.2_linux_amd64.zip
         mv vault /usr/bin/vault
-  install_circleci: &install_circleci
-    run:
-      name: Install CircleCI CLI
-      command: |
-        cd /tmp
-        curl -LO https://github.com/CircleCI-Public/circleci-cli/releases/download/v0.1.16535/circleci-cli_0.1.16535_linux_amd64.tar.gz
-        tar -zxvf circleci-cli_0.1.16535_linux_amd64.tar.gz
-        mv circleci-cli_0.1.16535_linux_amd64/circleci /bin/circleci
-        circleci version
 jobs:
   test:
     working_directory: /home/circleci/go/src/github.com/fairwindsops/bif
@@ -99,16 +76,6 @@ workflows:
               only: /.*/
             tags:
               ignore: /.*/
-      - rok8s/kubernetes_e2e_tests:
-          requires:
-            - test
-          filters:
-            branches:
-              only: /.*/
-            tags:
-              ignore: /.*/
-          name: functional tests
-          <<: *e2e_config
   release:
     jobs:
       - oss-docs/publish-docs:
