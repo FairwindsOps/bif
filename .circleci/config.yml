@@ -1,7 +1,6 @@
 version: 2.1
 
 orbs:
-  orb-tools: circleci/orb-tools@10.1.0
   rok8s: fairwinds/rok8s-scripts@11
   oss-docs: fairwinds/oss-docs@0
 
@@ -87,34 +86,6 @@ jobs:
       - store_artifacts:
           path: dist
           destination: snapshot
-  publish-dev-orb:
-    working_directory: /go/src/github.com/fairwindsops/bif
-    docker:
-      - image: quay.io/reactiveops/ci-images:v11-alpine
-    shell: /bin/bash
-    steps:
-      - checkout
-      - *install_vault_alpine
-      - rok8s/get_vault_env:
-          vault_path: repo/global/env
-      - *install_circleci
-      - orb-tools/pack:
-          source: orb/
-      - orb-tools/publish:
-          orb-ref: fairwinds/bif@dev:${CIRCLE_BRANCH}
-          token-variable: CIRCLECI_DEV_API_TOKEN
-  request-orb-publish:
-    docker:
-      - image: quay.io/reactiveops/ci-images:v11-alpine
-    steps:
-      - *install_vault_alpine
-      - rok8s/get_vault_env:
-          vault_path: repo/bif/env
-      - run:
-          name: "Request Orb Publish"
-          command: |
-            apk --update add curl
-            curl -X POST --data-urlencode "payload={\"text\": \"Please publish a new bif orb by checking out $CIRCLE_TAG and running release-orb.sh\"}" $SLACK_URL
 workflows:
   version: 2
   test:
@@ -153,32 +124,3 @@ workflows:
               ignore: /.*/
             tags:
               only: /.*/
-  "Orb Test and Publish":
-    jobs:
-      - orb-tools/lint:
-          name: "Lint Orb Files"
-          pre-steps:
-            - run:
-                command: apk add git openssh
-          lint-dir: orb
-          filters:
-            branches:
-              only: /.*/
-            tags:
-              only: /.*/
-      - publish-dev-orb:
-          name: Publish Dev Orb
-          requires:
-            - "Lint Orb Files"
-          filters:
-            branches:
-              only: /.*/
-            tags:
-              ignore: /.*/
-      - request-orb-publish:
-          name: "Request Orb Publishing"
-          filters:
-            branches:
-              ignore: /.*/
-            tags:
-              only: /^v.*/
