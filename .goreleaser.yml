@@ -24,7 +24,7 @@ release:
     ```
 
     ```
-    cosign verify us-docker.pkg.dev/fairwinds-ops/oss/bif:v5 --key https://artifacts.fairwinds.com/cosign.pub
+    cosign verify us-docker.pkg.dev/fairwinds-ops/oss/bif:v{{ .Major }} --key https://artifacts.fairwinds.com/cosign.pub
     ```
 builds:
   - ldflags:
