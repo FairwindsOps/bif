@@ -13,7 +13,7 @@ BIF allows you to understand the impact of updating the base image of your conta
 
 ## Installation
 
-Download the latest binary from the latest [release page](https://github.com/FairwindsOps/bif/releases/latest)
+Download the latest binary from the [releases page](https://github.com/FairwindsOps/bif/releases/latest)
 
 ## Usage
 
