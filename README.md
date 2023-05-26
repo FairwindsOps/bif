@@ -4,9 +4,9 @@ This utility interacts with the Fairwinds BIF-Server to find base images and rep
 
 ## What and Why is it?
 
-When using a container scanning tool to identivy known vulnerabilities (CVEs, or common vulnerabilities and exposures), it can be difficult to understand _where_ the vulnerabilities exist in the container, and how to mitigate them. Often, the simplest and most efficient mitigation is to update the "base image" - or the image used in the `FROM` statement in your container definition.
+When using a container scanning tool to identify known vulnerabilities (CVEs, or common vulnerabilities and exposures), it can be difficult to understand _where_ the vulnerabilities exist in the container, and how to mitigate them. Often, the simplest and most efficient mitigation is to update the "base image" - or the image used in the `FROM` statement in your container definition.
 
-BIF allows you to understand the impact of updating the base image of your container will have.
+BIF allows you to understand the impact of updating the base image of your container will have:
   * First, it can detect what base image the container is using, even though it doesn't have access to the Dockerfile.
   * Second, it will show you what vulnerabilities are present in that base image.
   * Lastly, it will show you what versions of that base image don't have that vulnerability.
