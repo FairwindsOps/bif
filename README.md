@@ -1,3 +1,16 @@
+<div align="center">
+    <br>
+    <a href="https://github.com/FairwindsOps/bif/releases">
+        <img src="https://img.shields.io/github/v/release/FairwindsOps/bif">
+    </a>
+    <a href="https://bif.docs.fairwinds.com">
+        <img src="https://img.shields.io/badge/-docuementation-green">
+    </a>
+    <a href="https://join.slack.com/t/fairwindscommunity/shared_invite/zt-e3c6vj4l-3lIH6dvKqzWII5fSSFDi1g">
+      <img src="https://img.shields.io/static/v1?label=Slack&message=Join+our+Community&color=4a154b&logo=slack">
+    </a>
+</div>
+
 # BIF - The Fairwinds Base Image Finder Client
 
 This utility interacts with the Fairwinds BIF-Server to find base images and report on their vulnerabilities.
