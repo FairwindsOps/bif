@@ -39,7 +39,7 @@ bif request-token
 # Follow the prompt to enter your email address
 ```
 
-You will receive your token via email
+You will receive your token via email. To automatically have BIF use this token, export it as `INSIGHTS_OSS_TOKEN` in your environment.
 
 ### Extract Layers Using Skopeo and Find Base Image
 
