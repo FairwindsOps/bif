@@ -1,5 +1,5 @@
 <div align="center">
-    <img src="/img/bif-logo.svg" height="150" alt="Goldilocks" style="padding-bottom: 20px" />
+    <img src="/img/bif-logo.svg" height="150" alt="Base Image Finder" style="padding-bottom: 20px" />
     <br>
     <br>
     <a href="https://github.com/FairwindsOps/bif/releases">
