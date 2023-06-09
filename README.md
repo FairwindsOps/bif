@@ -1,15 +1,15 @@
-<div align="center">
-    <img src="/img/bif-logo.svg" height="150" alt="Base Image Finder" style="padding-bottom: 20px" class="no-border" />
+<div align="center" class="no-border">
+    <img src="/img/bif-logo.svg" height="150" alt="Base Image Finder" style="padding-bottom: 20px">
     <br>
     <br>
     <a href="https://github.com/FairwindsOps/bif/releases">
-        <img src="https://img.shields.io/github/v/release/FairwindsOps/bif" class="no-border" />
+        <img src="https://img.shields.io/github/v/release/FairwindsOps/bif">
     </a>
     <a href="https://bif.docs.fairwinds.com">
-        <img src="https://img.shields.io/badge/-docuementation-green" class="no-border" />
+        <img src="https://img.shields.io/badge/-docuementation-green">
     </a>
     <a href="https://join.slack.com/t/fairwindscommunity/shared_invite/zt-e3c6vj4l-3lIH6dvKqzWII5fSSFDi1g">
-      <img src="https://img.shields.io/static/v1?label=Slack&message=Join+our+Community&color=4a154b&logo=slack" class="no-border" />
+      <img src="https://img.shields.io/static/v1?label=Slack&message=Join+our+Community&color=4a154b&logo=slack">
     </a>
 </div>
 
