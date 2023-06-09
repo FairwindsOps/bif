@@ -1,4 +1,6 @@
 <div align="center">
+    <img src="/img/bif-logo.svg" height="150" alt="Goldilocks" style="padding-bottom: 20px" />
+    <br>
     <br>
     <a href="https://github.com/FairwindsOps/bif/releases">
         <img src="https://img.shields.io/github/v/release/FairwindsOps/bif">
