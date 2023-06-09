@@ -1,6 +1,32 @@
+<div align="center">
+    <br>
+    <a href="https://github.com/FairwindsOps/bif/releases">
+        <img src="https://img.shields.io/github/v/release/FairwindsOps/bif">
+    </a>
+    <a href="https://bif.docs.fairwinds.com">
+        <img src="https://img.shields.io/badge/-docuementation-green">
+    </a>
+    <a href="https://join.slack.com/t/fairwindscommunity/shared_invite/zt-e3c6vj4l-3lIH6dvKqzWII5fSSFDi1g">
+      <img src="https://img.shields.io/static/v1?label=Slack&message=Join+our+Community&color=4a154b&logo=slack">
+    </a>
+</div>
+
 # BIF - The Fairwinds Base Image Finder Client
 
 This utility interacts with the Fairwinds BIF-Server to find base images and report on their vulnerabilities.
+
+## What and Why is it?
+
+When using a container scanning tool to identify known vulnerabilities (CVEs, or common vulnerabilities and exposures), it can be difficult to understand _where_ the vulnerabilities exist in the container, and how to mitigate them. Often, the simplest and most efficient mitigation is to update the "base image" - or the image used in the `FROM` statement in your container definition.
+
+BIF allows you to understand the impact of updating the base image of your container will have:
+  * First, it can detect what base image the container is using, even though it doesn't have access to the Dockerfile.
+  * Second, it will show you what vulnerabilities are present in that base image.
+  * Lastly, it will show you what versions of that base image don't have that vulnerability.
+
+## Installation
+
+Download the latest binary from the [releases page](https://github.com/FairwindsOps/bif/releases/latest)
 
 ## Usage
 
@@ -13,7 +39,7 @@ bif request-token
 # Follow the prompt to enter your email address
 ```
 
-You will receive your token via email
+You will receive your token via email. To automatically have BIF use this token, export it as `INSIGHTS_OSS_TOKEN` in your environment.
 
 ### Extract Layers Using Skopeo and Find Base Image
 
