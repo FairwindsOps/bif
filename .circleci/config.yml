@@ -34,7 +34,7 @@ jobs:
     resource_class: large
     shell: /bin/bash
     docker:
-      - image: goreleaser/goreleaser:v1.18.2
+      - image: goreleaser/goreleaser:v2.14.3
         environment:
           GO111MODULE: "on"
     steps:
@@ -50,16 +50,16 @@ jobs:
           command: |
             docker login -u _json_key -p "$(echo $GCP_ARTIFACTREADWRITE_JSON_KEY | base64 -d)" us-docker.pkg.dev
       - run: echo 'export GORELEASER_CURRENT_TAG="${CIRCLE_TAG}"' >> $BASH_ENV
-      - run: goreleaser
+      - run: goreleaser release --clean
   snapshot:
     working_directory: /home/circleci/go/src/github.com/fairwindsops/bif
     resource_class: large
     docker:
-      - image: goreleaser/goreleaser:v1.18.2
+      - image: goreleaser/goreleaser:v2.14.3
     steps:
       - checkout
       - setup_remote_docker
-      - run: goreleaser --snapshot --skip-sign
+      - run: goreleaser release --snapshot --skip=sign --clean
       - store_artifacts:
           path: dist
           destination: snapshot
