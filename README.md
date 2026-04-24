@@ -81,23 +81,10 @@ Input: us-docker.pkg.dev/fairwinds-ops/oss/polaris 7.0.0
 ## Troubleshooting
 
 If you run into issues, you can try adding debug logging with the `--debug` flag. If you have further issues, please reach out in the community slack or file a github issue.
-## Notice: Registry Migration and Immutable Images (v0.0.11 → v0.1.0)
+
+## Notice: Immutable and signed images (v0.1.0+)
 
 Starting with **v0.1.0**:
-
-- Images moved to `us-docker.pkg.dev/fairwinds-ops/oss/bif`
-- `quay.io/fairwinds/bif` is deprecated
-
-### Required action
-
-```diff
-- quay.io/fairwinds/bif:<tag>
-+ us-docker.pkg.dev/fairwinds-ops/oss/bif:<tag>
-```
-
----
-
-## Immutable and signed images
 
 * Images are now **signed**
 * Tags are **immutable**
