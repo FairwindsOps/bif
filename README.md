@@ -81,3 +81,27 @@ Input: us-docker.pkg.dev/fairwinds-ops/oss/polaris 7.0.0
 ## Troubleshooting
 
 If you run into issues, you can try adding debug logging with the `--debug` flag. If you have further issues, please reach out in the community slack or file a github issue.
+
+## Notice: Immutable and signed images (v0.1.0+)
+
+Starting with **v0.1.0**:
+
+* Images are now **signed**
+* Tags are **immutable**
+* No more floating tags:
+
+  * `v0`
+  * `v0.0`
+  * `latest`
+
+Use full version tags:
+
+```
+us-docker.pkg.dev/fairwinds-ops/oss/bif:v<major>.<minor>.<patch>
+```
+
+Or pin by digest:
+
+```
+us-docker.pkg.dev/fairwinds-ops/oss/bif@sha256:<digest>
+```
