@@ -13,6 +13,8 @@
     </a>
 </div>
 
+# DEPRECATION NOTICE - Fairwinds will no longer be serving the underlying infrastructure for BIF as of July of 2026
+
 # BIF - The Fairwinds Base Image Finder Client
 
 This utility interacts with the Fairwinds BIF-Server to find base images and report on their vulnerabilities.
